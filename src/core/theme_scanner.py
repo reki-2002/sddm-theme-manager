@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import configparser
+from src.core.screenshot_manager import get_custom_screenshots
 
 THEMES_DIR = Path("/usr/share/sddm/themes")
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
@@ -59,7 +60,10 @@ def scan_themes():
             "description": description,
             "author": author,
             "path": str(theme_dir),
-            "previews": find_previews(theme_dir),
+            "previews": (
+    find_previews(theme_dir)
+    + get_custom_screenshots(theme_dir.name)
+),
         })
 
     return themes

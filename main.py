@@ -97,6 +97,7 @@ class ThemeManager(QMainWindow):
         self.pages.setCurrentWidget(self.details_page)
 
     def show_gallery(self):
+        self.load_themes()
         self.pages.setCurrentWidget(self.gallery_page)
 
 
