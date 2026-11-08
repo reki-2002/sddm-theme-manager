@@ -8,7 +8,11 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QLabel,
     QPushButton,
+    QListWidget,
+    QMessageBox,
 )
+
+from src.core.theme_scanner import scan_themes
 
 
 class ThemeManager(QMainWindow):
@@ -27,21 +31,51 @@ class ThemeManager(QMainWindow):
         )
 
         description = QLabel(
-            "Manage your SDDM themes easily."
+            "Manage your installed SDDM themes."
         )
 
-        button = QPushButton("Scan installed themes")
-        button.clicked.connect(self.scan_themes)
+        self.scan_button = QPushButton(
+            "Scan installed themes"
+        )
+        self.scan_button.clicked.connect(
+            self.load_themes
+        )
+
+        self.theme_list = QListWidget()
+
+        self.status = QLabel("Ready to scan.")
 
         layout.addWidget(title)
         layout.addWidget(description)
-        layout.addWidget(button)
-        layout.addStretch()
+        layout.addWidget(self.scan_button)
+        layout.addWidget(self.theme_list)
+        layout.addWidget(self.status)
 
         self.setCentralWidget(container)
 
-    def scan_themes(self):
-        print("Theme scanning will be implemented next!")
+        self.load_themes()
+
+    def load_themes(self):
+        self.theme_list.clear()
+
+        try:
+            themes = scan_themes()
+        except OSError as error:
+            QMessageBox.warning(
+                self,
+                "Scan failed",
+                str(error)
+            )
+            return
+
+        for theme in themes:
+            self.theme_list.addItem(
+                f"{theme['name']} ({theme['id']})"
+            )
+
+        self.status.setText(
+            f"{len(themes)} installed theme(s) found."
+        )
 
 
 if __name__ == "__main__":
