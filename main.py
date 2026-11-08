@@ -4,7 +4,8 @@ import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget,
     QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QScrollArea, QMessageBox
+    QPushButton, QScrollArea, QMessageBox,
+    QStackedWidget
 )
 
 from src.core.theme_scanner import scan_themes
@@ -17,44 +18,61 @@ class ThemeManager(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("SDDM Theme Manager")
-        self.resize(1000, 700)
+        self.resize(1100, 750)
 
-        container = QWidget()
-        layout = QVBoxLayout(container)
+        self.pages = QStackedWidget()
+        self.setCentralWidget(self.pages)
+
+        # Gallery page
+        self.gallery_page = QWidget()
+        self.gallery_layout = QVBoxLayout(self.gallery_page)
 
         title = QLabel("SDDM Theme Manager")
-        title.setStyleSheet("font-size: 26px; font-weight: bold;")
+        title.setStyleSheet(
+            "font-size: 28px; font-weight: bold;"
+        )
 
-        description = QLabel("Explore your installed SDDM themes.")
+        description = QLabel(
+            "Explore your installed SDDM themes."
+        )
 
-        scan_button = QPushButton("Refresh themes")
-        scan_button.clicked.connect(self.load_themes)
+        refresh_button = QPushButton("Refresh themes")
+        refresh_button.clicked.connect(self.load_themes)
 
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
 
         self.status = QLabel("Ready.")
 
-        layout.addWidget(title)
-        layout.addWidget(description)
-        layout.addWidget(scan_button)
-        layout.addWidget(self.scroll, 1)
-        layout.addWidget(self.status)
+        self.gallery_layout.addWidget(title)
+        self.gallery_layout.addWidget(description)
+        self.gallery_layout.addWidget(refresh_button)
+        self.gallery_layout.addWidget(self.scroll, 1)
+        self.gallery_layout.addWidget(self.status)
 
-        self.setCentralWidget(container)
+        # Details page
+        self.details_page = ThemeDetails()
+        self.details_page.back_requested.connect(
+            self.show_gallery
+        )
+
+        self.pages.addWidget(self.gallery_page)
+        self.pages.addWidget(self.details_page)
+
         self.load_themes()
 
     def load_themes(self):
         try:
             themes = scan_themes()
         except OSError as error:
-            QMessageBox.warning(self, "Scan failed", str(error))
+            QMessageBox.warning(
+                self, "Scan failed", str(error)
+            )
             return
 
         gallery = QWidget()
         gallery_layout = QVBoxLayout(gallery)
 
-        # Simple rows of three cards.
         for start in range(0, len(themes), 3):
             row = QHBoxLayout()
 
@@ -69,13 +87,17 @@ class ThemeManager(QMainWindow):
         gallery_layout.addStretch()
 
         self.scroll.setWidget(gallery)
+
         self.status.setText(
             f"{len(themes)} installed theme(s) found."
         )
 
     def open_details(self, theme):
-        dialog = ThemeDetails(theme, self)
-        dialog.exec()
+        self.details_page.load_theme(theme)
+        self.pages.setCurrentWidget(self.details_page)
+
+    def show_gallery(self):
+        self.pages.setCurrentWidget(self.gallery_page)
 
 
 if __name__ == "__main__":

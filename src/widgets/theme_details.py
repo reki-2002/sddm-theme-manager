@@ -1,72 +1,96 @@
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton
+    QWidget, QVBoxLayout, QHBoxLayout,
+    QLabel, QPushButton, QScrollArea
 )
 
 
-class ThemeDetails(QDialog):
-    def __init__(self, theme, parent=None):
+class ThemeDetails(QWidget):
+    back_requested = Signal()
+
+    def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.theme = theme
-        self.previews = theme.get("previews", [])
+        self.theme = None
+        self.previews = []
         self.index = 0
 
-        self.setWindowTitle(theme["name"])
-        self.resize(850, 650)
-
         layout = QVBoxLayout(self)
+        layout.setSpacing(12)
 
-        title = QLabel(theme["name"])
-        title.setStyleSheet("font-size: 26px; font-weight: bold;")
-        layout.addWidget(title)
+        self.back_button = QPushButton("← Back to Gallery")
+        self.back_button.clicked.connect(self.back_requested.emit)
+        layout.addWidget(self.back_button)
+
+        self.title = QLabel()
+        self.title.setStyleSheet(
+            "font-size: 28px; font-weight: bold;"
+        )
+        layout.addWidget(self.title)
 
         self.image = QLabel("No preview available")
         self.image.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image.setMinimumHeight(350)
+        self.image.setMinimumHeight(320)
         layout.addWidget(self.image, 1)
 
         navigation = QHBoxLayout()
 
-        previous = QPushButton("Previous")
-        next_button = QPushButton("Next")
+        self.previous_button = QPushButton("← Previous")
+        self.next_button = QPushButton("Next →")
 
-        previous.clicked.connect(lambda: self.change_image(-1))
-        next_button.clicked.connect(lambda: self.change_image(1))
+        self.previous_button.clicked.connect(
+            lambda: self.change_image(-1)
+        )
+        self.next_button.clicked.connect(
+            lambda: self.change_image(1)
+        )
 
-        previous.setEnabled(len(self.previews) > 1)
-        next_button.setEnabled(len(self.previews) > 1)
-
-        navigation.addWidget(previous)
+        navigation.addWidget(self.previous_button)
         navigation.addStretch()
-        navigation.addWidget(next_button)
+        navigation.addWidget(self.next_button)
         layout.addLayout(navigation)
 
-        description = QLabel(
+        self.description = QLabel()
+        self.description.setWordWrap(True)
+        layout.addWidget(self.description)
+
+        self.author = QLabel()
+        layout.addWidget(self.author)
+
+        self.install_button = QPushButton("Installed")
+        self.install_button.setEnabled(False)
+        layout.addWidget(self.install_button)
+
+    def load_theme(self, theme):
+        self.theme = theme
+        self.previews = theme.get("previews", [])
+        self.index = 0
+
+        self.title.setText(theme["name"])
+        self.description.setText(
             theme.get("description") or "No description available."
         )
-        description.setWordWrap(True)
-        layout.addWidget(description)
-
-        author = QLabel(
+        self.author.setText(
             f"Author: {theme.get('author') or 'Unknown'}"
         )
-        layout.addWidget(author)
 
-        button = QPushButton("Installed")
-        button.setEnabled(False)
-        layout.addWidget(button)
+        has_multiple = len(self.previews) > 1
+        self.previous_button.setEnabled(has_multiple)
+        self.next_button.setEnabled(has_multiple)
 
         self.show_preview()
 
     def show_preview(self):
+        self.image.clear()
+
         if not self.previews:
+            self.image.setText("No preview available")
             return
 
         pixmap = QPixmap(self.previews[self.index])
+
         if pixmap.isNull():
             self.image.setText("Preview unavailable")
             return
@@ -83,5 +107,8 @@ class ThemeDetails(QDialog):
         if not self.previews:
             return
 
-        self.index = (self.index + direction) % len(self.previews)
+        self.index = (
+            self.index + direction
+        ) % len(self.previews)
+
         self.show_preview()
