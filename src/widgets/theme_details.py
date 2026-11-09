@@ -146,7 +146,7 @@ class ThemeDetails(QWidget):
         if len(self.previews) > 1:
             self.timer.start()
 
-    
+
     def add_custom_screenshots(self):
         if not self.theme:
             return
@@ -336,7 +336,7 @@ class ThemeDetails(QWidget):
         if len(self.previews) > 1:
             self.timer.start()
 
-    
+
     def remove_custom_screenshot(self, index):
         if not self.theme:
             return

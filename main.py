@@ -40,10 +40,10 @@ class ThemeManager(QMainWindow):
             "Explore your installed SDDM themes."
         )
         self.open_themes_button = QPushButton("📂 Open Themes Folder")
-        
+
         self.open_themes_button.clicked.connect(
             self.open_themes_folder
-            
+
         )
 
         refresh_button = QPushButton("Refresh themes")
@@ -71,10 +71,10 @@ class ThemeManager(QMainWindow):
         self.pages.addWidget(self.details_page)
 
         self.load_themes()
-    
+
     def open_themes_folder(self):
         themes_path = Path("/usr/share/sddm/themes")
-        
+
         if not themes_path.is_dir():
             QMessageBox.warning(
                 self,
@@ -82,7 +82,7 @@ class ThemeManager(QMainWindow):
                 "The SDDM themes directory does not exist."
             )
             return
-        
+
         try:
             subprocess.Popen(
                 ["xdg-open", str(themes_path)]
