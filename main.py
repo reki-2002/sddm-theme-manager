@@ -1,5 +1,6 @@
-
 import sys
+import subprocess
+from pathlib import Path
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget,
@@ -11,6 +12,9 @@ from PySide6.QtWidgets import (
 from src.core.theme_scanner import scan_themes
 from src.widgets.theme_card import ThemeCard
 from src.widgets.theme_details import ThemeDetails
+from pathlib import Path
+from PySide6.QtCore import QUrl
+from PySide6.QtGui import QDesktopServices
 
 
 class ThemeManager(QMainWindow):
@@ -35,6 +39,12 @@ class ThemeManager(QMainWindow):
         description = QLabel(
             "Explore your installed SDDM themes."
         )
+        self.open_themes_button = QPushButton("📂 Open Themes Folder")
+        
+        self.open_themes_button.clicked.connect(
+            self.open_themes_folder
+            
+        )
 
         refresh_button = QPushButton("Refresh themes")
         refresh_button.clicked.connect(self.load_themes)
@@ -46,6 +56,7 @@ class ThemeManager(QMainWindow):
 
         self.gallery_layout.addWidget(title)
         self.gallery_layout.addWidget(description)
+        self.gallery_layout.addWidget(self.open_themes_button)
         self.gallery_layout.addWidget(refresh_button)
         self.gallery_layout.addWidget(self.scroll, 1)
         self.gallery_layout.addWidget(self.status)
@@ -60,6 +71,28 @@ class ThemeManager(QMainWindow):
         self.pages.addWidget(self.details_page)
 
         self.load_themes()
+    
+    def open_themes_folder(self):
+        themes_path = Path("/usr/share/sddm/themes")
+        
+        if not themes_path.is_dir():
+            QMessageBox.warning(
+                self,
+                "Folder not found",
+                "The SDDM themes directory does not exist."
+            )
+            return
+        
+        try:
+            subprocess.Popen(
+                ["xdg-open", str(themes_path)]
+            )
+        except OSError as error:
+            QMessageBox.warning(
+                self,
+                "Error",
+                f"Could not open the themes folder:\n{error}"
+            )
 
     def load_themes(self):
         try:

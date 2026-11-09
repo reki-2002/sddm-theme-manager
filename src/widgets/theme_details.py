@@ -14,6 +14,7 @@ from src.core.screenshot_manager import (
     get_custom_screenshots,
     remove_screenshot
 )
+from src.widgets.theme_file_actions import ThemeFileActions
 
 
 class ThemeDetails(QWidget):
@@ -116,6 +117,8 @@ class ThemeDetails(QWidget):
         self.install_button = QPushButton("Installed")
         self.install_button.setEnabled(False)
         layout.addWidget(self.install_button)
+        self.file_actions = ThemeFileActions()
+        layout.addWidget(self.file_actions)
 
         self.update_controls()
 
@@ -123,6 +126,7 @@ class ThemeDetails(QWidget):
         self.timer.stop()
 
         self.theme = theme
+        self.file_actions.set_theme(theme)
         self.previews = theme.get("previews", [])
         self.index = 0
 
