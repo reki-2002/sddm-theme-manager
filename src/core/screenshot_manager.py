@@ -80,4 +80,3 @@ def remove_screenshot(theme_id, screenshot_path):
         )
 
     screenshot.unlink()
-

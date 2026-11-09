@@ -387,4 +387,3 @@ class ThemeDetails(QWidget):
                 "Removal failed",
                 str(error)
             )
-
